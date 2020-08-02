@@ -1,23 +1,28 @@
 ﻿using UnityEngine;
+using UnityEditor;
+using System.IO;
+using System.Collections.Generic;
 
 [ExecuteInEditMode]
 public class WorldController : MonoBehaviour
 {
     public bool complete = false;
 
+    public int Level = 1;
     public int gridX = 5;
     public int gridY = 5;
     public int gridSize = 25;
     public GameObject tilePrefab;
     public GameObject floorPrefab;
+    
+    private List<string> levelData;
 
     Vector2 grid;
        
     void Awake()
     {
-        gridSize = gridX * gridY;
-
-        grid = new Vector2(gridX, gridY);
+        levelData = new List<string>();
+        ReadLevelData(Level);
 
         if (!complete)
         {
@@ -27,6 +32,49 @@ public class WorldController : MonoBehaviour
 
             complete = true;
         }
+    }
+
+    // put data from the level file into a string
+    [MenuItem("Tools/Read file")]
+    void ReadLevelData(int level)
+    {
+        string path = "Assets/LevelData/Level" + level + ".txt";
+
+        StreamReader reader = new StreamReader(path);
+
+        string line;
+        int temp = 0;
+        bool set = false;
+
+        do
+        {
+            line = reader.ReadLine();
+
+            if (line != null)
+            {
+                Debug.Log(line);
+
+                if (!set)
+                {
+                    gridX = line.Length;
+
+                    set = true;
+                }
+
+                levelData.Add(line);
+
+                temp++;
+            }
+
+        } while (line != null && temp < 100);
+                       
+        reader.Close();
+
+        gridSize = gridX * gridY;
+
+        Debug.Log(gridX + gridY + gridSize);
+
+        grid = new Vector2(gridX, gridY);
     }
 
     void GenerateTiles()
@@ -49,10 +97,5 @@ public class WorldController : MonoBehaviour
             
             GameObject floor = Instantiate(floorPrefab, floorTile.position, Quaternion.identity, floorTile);
         }
-    }
-
-    void Update()
-    {
-
     }
 }
